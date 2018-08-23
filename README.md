@@ -26,7 +26,7 @@ For trio samples, Please see the help page for annotate_vcf.pl for more details.
 You can download DVboost from github, you need to install devtools if you haven't done so:
 ```{r, eval=FALSE}
 install.packages('devtools')
-devtools::install_github('https://github.com/Liuy12/DVboost')
+devtools::install_github('Liuy12/DVboost')
 ```
 ```{r}
 library(DVboost)
