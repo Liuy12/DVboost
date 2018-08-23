@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Yuanhang Liu" />
+
+<meta name="date" content="2018-08-23" />
+
+<title>Adaptive variant filtering using generalized boosted regression models</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceLine, a.sourceLine { display: inline-block; min-height: 1.25em; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; }
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+div.sourceLine, a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource div.sourceLine, .numberSource a.sourceLine
+  { position: relative; }
+pre.numberSource div.sourceLine::before, .numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: absolute; left: -5em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em; }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; color: #aaaaaa;  padding-left: 4px; }
+@media screen {
+a.sourceLine::before { text-decoration: underline; color = initial; }
+}
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.bn { color: #40a070; } /* BaseN */
+code span.fl { color: #40a070; } /* Float */
+code span.ch { color: #4070a0; } /* Char */
+code span.st { color: #4070a0; } /* String */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.ot { color: #007020; } /* Other */
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.fu { color: #06287e; } /* Function */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code span.cn { color: #880000; } /* Constant */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.im { } /* Import */
+code span.va { color: #19177c; } /* Variable */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.op { color: #666666; } /* Operator */
+code span.bu { } /* BuiltIn */
+code span.ex { } /* Extension */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.at { color: #7d9029; } /* Attribute */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Adaptive variant filtering using generalized boosted regression models</h1>
+<h4 class="author"><em>Yuanhang Liu</em></h4>
+<h4 class="date"><em>2018-08-23</em></h4>
+
+
+
+<p>Structure variants (SVs), such as inversions, duplications and large deletion, have complex genetic profiles as they vary in size, architecture and genomic context and read alignment accuracy is compromised near SVs. Multiple computational tools have been developed for calling SVs, but without effective and generalizable filtering tools. We developed a bioinformatics tool kit consisting of two major modules: the first annotation component to annotate given SV calls with various genomics features and polymorphism CNVs with the assumption that the SVs overlapping with polymorphism CNVs are likely true calls, the second module used boosted regression to construct a predictive model of SV filtering/prioritization based on these features.</p>
+<section id="annotate-svs-with-polymorphic-cnvs-and-genomic-features" class="level2">
+<h2>Annotate SVs with polymorphic CNVs and genomic features</h2>
+<p>Please make sure that SVs generated by SV callers, such as LUMPY, follows standard <a href="https://samtools.github.io/hts-specs/VCFv4.2.pdf">VCF4.2 specification</a>. After SV calling procedure, we firstly examine whether a certian SV is known or novel by overlapping with published polymorphic CNV database and 1000 genome database. At the same time, each SV is annotated with the following attributes: * PE: number of paired end reads support * SR: number of split reads support * GERMLINE_ARTIFACT: integer indicating germline artifact * POLYMORPHIC_CNVMAP: 0/1 indicating whether the same SV is a known SV based on <a href="https://www.nature.com/articles/nrg3871">polymophic CNV database</a> * POLYMORPHIC_CNVR: 0/1 indicating whether the same SV is a known SV based on <a href="https://www.nature.com/articles/nature15393">1k genome database</a> * L_START_STRICTMASK &amp; L_END_STRICTMASK: average of strict mask L 100bp around SV start/end position (L indicates depth of coverage is much lower than average) * H_START_STRICTMASK &amp; H_END_STRICTMASK: average of strict mask H 100bp around SV start/end position (H indicates depth of coverage is much higher than average) * Z_START_STRICTMASK &amp; Z_END_STRICTMASK: average of strict mask Z 100bp around SV start/end position (Z indicates too many reads with zero mapping quality overlap this position) * Q_START_STRICTMASK &amp; Q_END_STRICTMASK: average of strict mask Q 100bp around SV start/end position (Q indicates average mapping quality is too low)</p>
+<p>You will need to have <a href="https://www.perl.org/get.html">perl</a> and <a href="https://bedtools.readthedocs.io/en/latest/content/installation.html">bedtools</a> installed on your system for annotation purpose. To annotate SVs, firstly download all required annotation files under <a href="https://github.com/Liuy12/DVboost_files/">annotation_files</a> directory to your local directory. Extract germline_artifacts.zip and StrictMask.hg38.fa.zip to your local directory. The annotation files will roughly consumes 3.9G of your storage space. Then, use the perl script under inst/script folder to annotate the vcf file:</p>
+<pre class="sourceCode perl"><code class="sourceCode perl"><div class="sourceLine" id="1" href="#1" data-line-number="1">perl annotate_vcf.pl -i path/to/input.vcf <span class="kw">-o</span> path/to/output_table.txt <span class="kw">-g</span> path/to/germline_artifacts.txt <span class="kw">-c</span> path/to/CNVMAP.bed -v path/to/CNVR.bed <span class="kw">-d</span> path/to/segmental_dups.bed <span class="kw">-f</span> path/to/Homo_sapiens.refFlat -m path/to/strictmask.fa <span class="kw">-e</span> path/to/bedtools</div></code></pre>
+<p>For trio samples, Please see the help page for annotate_vcf.pl for more details. Following the annotation procedure, you then need to run DVboost algorithm to perform filtering based on the annotation.</p>
+</section>
+<section id="filtering-svs-with-generalized-boosted-regression-models" class="level2">
+<h2>Filtering SVs with generalized boosted regression models</h2>
+<p>You can download DVboost from github, you need to install devtools if you haven’t done so:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1"><span class="kw">install.packages</span>(<span class="st">'devtools'</span>)</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'Liuy12/DVboost'</span>)</div></code></pre>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1"><span class="kw">library</span>(DVboost)</div></code></pre>
+<p>Firstly, you need to load the annotated SVs file. loadVariants function will load and reformat the annotated SVs file. Average strict masks based on SVs start and end position will be calculated seperatedly for for L,H,Z,Q:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1">dataMat &lt;-<span class="st"> </span><span class="kw">loadVariants</span>(<span class="st">'path/to/input/SVs'</span>)</div></code></pre>
+<p>For demonstration purpose, we will load the example annotated SVs file:</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1"><span class="kw">data</span>(ExampleData, <span class="dt">package=</span><span class="st">'DVboost'</span>)</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2"><span class="kw">str</span>(ExampleData)</div>
+<div class="sourceLine" id="3" href="#3" data-line-number="3"><span class="co">#&gt; 'data.frame':    17519 obs. of  15 variables:</span></div>
+<div class="sourceLine" id="4" href="#4" data-line-number="4"><span class="co">#&gt;  $ ChrA    : chr  &quot;chr1&quot; &quot;chr1&quot; &quot;chr1&quot; &quot;chr1&quot; ...</span></div>
+<div class="sourceLine" id="5" href="#5" data-line-number="5"><span class="co">#&gt;  $ Start   : int  10528 66240 66525 789469 789473 789501 789501 862011 934050 1040893 ...</span></div>
+<div class="sourceLine" id="6" href="#6" data-line-number="6"><span class="co">#&gt;  $ ChrB    : chr  &quot;chr15&quot; &quot;chr19&quot; &quot;chr19&quot; &quot;chr1&quot; ...</span></div>
+<div class="sourceLine" id="7" href="#7" data-line-number="7"><span class="co">#&gt;  $ End     : int  101980230 108080 107796 224014626 224012415 16360616 790136 295679 934838 32916230 ...</span></div>
+<div class="sourceLine" id="8" href="#8" data-line-number="8"><span class="co">#&gt;  $ SVLen   : int  NA NA NA 223225157 223222942 NA 635 NA 788 NA ...</span></div>
+<div class="sourceLine" id="9" href="#9" data-line-number="9"><span class="co">#&gt;  $ Germline: int  102 324 336 550 550 256 53 246 99 9264 ...</span></div>
+<div class="sourceLine" id="10" href="#10" data-line-number="10"><span class="co">#&gt;  $ SVType  : chr  &quot;BND&quot; &quot;BND&quot; &quot;BND&quot; &quot;DUP&quot; ...</span></div>
+<div class="sourceLine" id="11" href="#11" data-line-number="11"><span class="co">#&gt;  $ PE      : int  9 10 4 40 5 10 0 4 5 4 ...</span></div>
+<div class="sourceLine" id="12" href="#12" data-line-number="12"><span class="co">#&gt;  $ SR      : int  0 0 0 0 0 1 6 0 0 0 ...</span></div>
+<div class="sourceLine" id="13" href="#13" data-line-number="13"><span class="co">#&gt;  $ CNVMAP  : int  NA NA NA 0 0 NA 0 NA 0 NA ...</span></div>
+<div class="sourceLine" id="14" href="#14" data-line-number="14"><span class="co">#&gt;  $ CNVR    : int  NA NA NA 0 0 NA 0 NA 0 NA ...</span></div>
+<div class="sourceLine" id="15" href="#15" data-line-number="15"><span class="co">#&gt;  $ avgL    : num  82 100 100 3 3 3 3 0 100 63.5 ...</span></div>
+<div class="sourceLine" id="16" href="#16" data-line-number="16"><span class="co">#&gt;  $ avgH    : num  0 0 0 64.5 62.5 53 37 0 0 31.5 ...</span></div>
+<div class="sourceLine" id="17" href="#17" data-line-number="17"><span class="co">#&gt;  $ avgZ    : num  18 0 0 32.5 34.5 44 60 100 0 1.5 ...</span></div>
+<div class="sourceLine" id="18" href="#18" data-line-number="18"><span class="co">#&gt;  $ avgQ    : num  0 0 0 0 0 0 0 0 0 0 ...</span></div></code></pre>
+<p>We can take a look at the composition of SV types and whether they have been previously identified with polymophic CNV database</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1"><span class="kw">table</span>(ExampleData<span class="op">$</span>SVType, ExampleData<span class="op">$</span>CNVMAP)</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2"><span class="co">#&gt;      </span></div>
+<div class="sourceLine" id="3" href="#3" data-line-number="3"><span class="co">#&gt;          0    1</span></div>
+<div class="sourceLine" id="4" href="#4" data-line-number="4"><span class="co">#&gt;   BND    0    0</span></div>
+<div class="sourceLine" id="5" href="#5" data-line-number="5"><span class="co">#&gt;   DEL 3541 1160</span></div>
+<div class="sourceLine" id="6" href="#6" data-line-number="6"><span class="co">#&gt;   DUP 1481  169</span></div>
+<div class="sourceLine" id="7" href="#7" data-line-number="7"><span class="co">#&gt;   INV    0    0</span></div></code></pre>
+<p>As you can see, there are limited number of known SVs for BND, DUP &amp; INV SV types. We will use DEL SV type to train the model and then test on BND, DUP &amp; INV SV types. Annotated polymophic SVs will be treated as true positives and novel SVs will be treated as true negatives.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1">DEL_svtype &lt;-<span class="st"> </span>ExampleData[ExampleData<span class="op">$</span>SVType<span class="op">==</span><span class="st">'DEL'</span>,]</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2">trueSVs &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(DEL_svtype<span class="op">$</span>CNVMAP <span class="op">==</span><span class="dv">1</span> <span class="op">|</span><span class="st"> </span>DEL_svtype<span class="op">$</span>CNVR <span class="op">==</span><span class="dv">1</span>)</div>
+<div class="sourceLine" id="3" href="#3" data-line-number="3"><span class="kw">table</span>(trueSVs)</div>
+<div class="sourceLine" id="4" href="#4" data-line-number="4"><span class="co">#&gt; trueSVs</span></div>
+<div class="sourceLine" id="5" href="#5" data-line-number="5"><span class="co">#&gt;    0    1 </span></div>
+<div class="sourceLine" id="6" href="#6" data-line-number="6"><span class="co">#&gt; 3517 1184</span></div></code></pre>
+<p>Then we will train the model using DEL subset of annotated SVs.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1">outdir &lt;-<span class="st"> </span><span class="kw">getwd</span>()</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2">DVb.res &lt;-<span class="st"> </span><span class="kw">runDVboostwrapper</span>( <span class="dt">var.atr.mtx =</span> DEL_svtype, <span class="dt">var.ID.vec =</span> <span class="kw">rownames</span>(DEL_svtype),</div>
+<div class="sourceLine" id="3" href="#3" data-line-number="3">                                <span class="dt">is.known.var.vec =</span> trueSVs,</div>
+<div class="sourceLine" id="4" href="#4" data-line-number="4">                                <span class="dt">output.DIR.name =</span> outdir,<span class="dt">input.sample.ID=</span><span class="st">'NA12878'</span>, <span class="dt">bySVlength=</span>F)</div>
+<div class="sourceLine" id="5" href="#5" data-line-number="5"><span class="co">#&gt; </span></div>
+<div class="sourceLine" id="6" href="#6" data-line-number="6"><span class="co">#&gt;  First 10 rows of input variant by attribute matrix... </span></div>
+<div class="sourceLine" id="7" href="#7" data-line-number="7"><span class="co">#&gt;                           ChrA   Start ChrB       End     SVLen Germline</span></div>
+<div class="sourceLine" id="8" href="#8" data-line-number="8"><span class="co">#&gt; chr1:789473_224012415@DEL chr1  789473 chr1 224012415 223222942      550</span></div>
+<div class="sourceLine" id="9" href="#9" data-line-number="9"><span class="co">#&gt; chr1:789501_790136@DEL    chr1  789501 chr1    790136       635       53</span></div>
+<div class="sourceLine" id="10" href="#10" data-line-number="10"><span class="co">#&gt; chr1:934050_934838@DEL    chr1  934050 chr1    934838       788       99</span></div>
+<div class="sourceLine" id="11" href="#11" data-line-number="11"><span class="co">#&gt; chr1:1350019_1351414@DEL  chr1 1350019 chr1   1351414      1395       11</span></div>
+<div class="sourceLine" id="12" href="#12" data-line-number="12"><span class="co">#&gt; chr1:1651466_1717728@DEL  chr1 1651466 chr1   1717728     66262      192</span></div>
+<div class="sourceLine" id="13" href="#13" data-line-number="13"><span class="co">#&gt; chr1:1667010_1667134@DEL  chr1 1667010 chr1   1667134       124       66</span></div>
+<div class="sourceLine" id="14" href="#14" data-line-number="14"><span class="co">#&gt; chr1:2652493_2750025@DEL  chr1 2652493 chr1   2750025     97532      118</span></div>
+<div class="sourceLine" id="15" href="#15" data-line-number="15"><span class="co">#&gt; chr1:2653051_2654491@DEL  chr1 2653051 chr1   2654491      1440       90</span></div>
+<div class="sourceLine" id="16" href="#16" data-line-number="16"><span class="co">#&gt; chr1:2994984_2995286@DEL  chr1 2994984 chr1   2995286       302       49</span></div>
+<div class="sourceLine" id="17" href="#17" data-line-number="17"><span class="co">#&gt; chr1:3002470_3002802@DEL  chr1 3002470 chr1   3002802       332       38</span></div>
+<div class="sourceLine" id="18" href="#18" data-line-number="18"><span class="co">#&gt;                           SVType PE SR CNVMAP CNVR  avgL  avgH  avgZ avgQ</span></div>
+<div class="sourceLine" id="19" href="#19" data-line-number="19"><span class="co">#&gt; chr1:789473_224012415@DEL    DEL  5  0      0    0   3.0  62.5  34.5    0</span></div>
+<div class="sourceLine" id="20" href="#20" data-line-number="20"><span class="co">#&gt; chr1:789501_790136@DEL       DEL  0  6      0    0   3.0  37.0  60.0    0</span></div>
+<div class="sourceLine" id="21" href="#21" data-line-number="21"><span class="co">#&gt; chr1:934050_934838@DEL       DEL  5  0      0    0 100.0   0.0   0.0    0</span></div>
+<div class="sourceLine" id="22" href="#22" data-line-number="22"><span class="co">#&gt; chr1:1350019_1351414@DEL     DEL  4  0      0    0  98.0   0.0   2.0    0</span></div>
+<div class="sourceLine" id="23" href="#23" data-line-number="23"><span class="co">#&gt; chr1:1651466_1717728@DEL     DEL  4  0      0    1   0.0   0.0 100.0    0</span></div>
+<div class="sourceLine" id="24" href="#24" data-line-number="24"><span class="co">#&gt; chr1:1667010_1667134@DEL     DEL  0  4      0    0  89.0   0.0  11.0    0</span></div>
+<div class="sourceLine" id="25" href="#25" data-line-number="25"><span class="co">#&gt; chr1:2652493_2750025@DEL     DEL  5  0      1    0   0.0  62.5  37.5    0</span></div>
+<div class="sourceLine" id="26" href="#26" data-line-number="26"><span class="co">#&gt; chr1:2653051_2654491@DEL     DEL  4  0      0    0   0.0 100.0   0.0    0</span></div>
+<div class="sourceLine" id="27" href="#27" data-line-number="27"><span class="co">#&gt; chr1:2994984_2995286@DEL     DEL  1 18      1    0  20.5   0.0  55.0    0</span></div>
+<div class="sourceLine" id="28" href="#28" data-line-number="28"><span class="co">#&gt; chr1:3002470_3002802@DEL     DEL  0 10      1    0   0.0   0.0   0.0    0</span></div>
+<div class="sourceLine" id="29" href="#29" data-line-number="29"><span class="co">#&gt; </span></div>
+<div class="sourceLine" id="30" href="#30" data-line-number="30"><span class="co">#&gt;  Last 10 rows of input variant by attribute matrix... </span></div>
+<div class="sourceLine" id="31" href="#31" data-line-number="31"><span class="co">#&gt;                            ChrA    Start ChrB      End SVLen Germline</span></div>
+<div class="sourceLine" id="32" href="#32" data-line-number="32"><span class="co">#&gt; chrY:56831822_56834871@DEL chrY 56831822 chrY 56834871  3049     1320</span></div>
+<div class="sourceLine" id="33" href="#33" data-line-number="33"><span class="co">#&gt; chrY:56832930_56835868@DEL chrY 56832930 chrY 56835868  2938      905</span></div>
+<div class="sourceLine" id="34" href="#34" data-line-number="34"><span class="co">#&gt; chrY:56834438_56836589@DEL chrY 56834438 chrY 56836589  2151      275</span></div>
+<div class="sourceLine" id="35" href="#35" data-line-number="35"><span class="co">#&gt; chrY:56835778_56835829@DEL chrY 56835778 chrY 56835829    51      114</span></div>
+<div class="sourceLine" id="36" href="#36" data-line-number="36"><span class="co">#&gt; chrY:56837200_56837368@DEL chrY 56837200 chrY 56837368   168      100</span></div>
+<div class="sourceLine" id="37" href="#37" data-line-number="37"><span class="co">#&gt; chrY:56838237_56844819@DEL chrY 56838237 chrY 56844819  6582      736</span></div>
+<div class="sourceLine" id="38" href="#38" data-line-number="38"><span class="co">#&gt; chrY:56838703_56851299@DEL chrY 56838703 chrY 56851299 12596      194</span></div>
+<div class="sourceLine" id="39" href="#39" data-line-number="39"><span class="co">#&gt; chrY:56839689_56844261@DEL chrY 56839689 chrY 56844261  4572      597</span></div>
+<div class="sourceLine" id="40" href="#40" data-line-number="40"><span class="co">#&gt; chrY:56848826_56851299@DEL chrY 56848826 chrY 56851299  2473      196</span></div>
+<div class="sourceLine" id="41" href="#41" data-line-number="41"><span class="co">#&gt; chrY:56858372_56858485@DEL chrY 56858372 chrY 56858485   113      110</span></div>
+<div class="sourceLine" id="42" href="#42" data-line-number="42"><span class="co">#&gt;                            SVType PE SR CNVMAP CNVR avgL avgH avgZ avgQ</span></div>
+<div class="sourceLine" id="43" href="#43" data-line-number="43"><span class="co">#&gt; chrY:56831822_56834871@DEL    DEL 63  1      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="44" href="#44" data-line-number="44"><span class="co">#&gt; chrY:56832930_56835868@DEL    DEL  3  4      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="45" href="#45" data-line-number="45"><span class="co">#&gt; chrY:56834438_56836589@DEL    DEL 24  0      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="46" href="#46" data-line-number="46"><span class="co">#&gt; chrY:56835778_56835829@DEL    DEL  0 66      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="47" href="#47" data-line-number="47"><span class="co">#&gt; chrY:56837200_56837368@DEL    DEL  0 15      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="48" href="#48" data-line-number="48"><span class="co">#&gt; chrY:56838237_56844819@DEL    DEL 56  0      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="49" href="#49" data-line-number="49"><span class="co">#&gt; chrY:56838703_56851299@DEL    DEL  8  3      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="50" href="#50" data-line-number="50"><span class="co">#&gt; chrY:56839689_56844261@DEL    DEL 53  0      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="51" href="#51" data-line-number="51"><span class="co">#&gt; chrY:56848826_56851299@DEL    DEL 18  0      0    0    0  100    0    0</span></div>
+<div class="sourceLine" id="52" href="#52" data-line-number="52"><span class="co">#&gt; chrY:56858372_56858485@DEL    DEL  0 47      0    0    0   79   21    0</span></div>
+<div class="sourceLine" id="53" href="#53" data-line-number="53"><span class="co">#&gt; </span></div>
+<div class="sourceLine" id="54" href="#54" data-line-number="54"><span class="co">#&gt;  whether variants are known (1 = known, 0 = others) </span></div>
+<div class="sourceLine" id="55" href="#55" data-line-number="55"><span class="co">#&gt; is.known.variant</span></div>
+<div class="sourceLine" id="56" href="#56" data-line-number="56"><span class="co">#&gt;    0    1 </span></div>
+<div class="sourceLine" id="57" href="#57" data-line-number="57"><span class="co">#&gt; 3517 1184 </span></div>
+<div class="sourceLine" id="58" href="#58" data-line-number="58"><span class="co">#&gt; </span></div>
+<div class="sourceLine" id="59" href="#59" data-line-number="59"><span class="co">#&gt;  fitting DVboost model ...</span></div>
+<div class="sourceLine" id="60" href="#60" data-line-number="60"><span class="co">#&gt; Warning in predict.gbm(model, newdata = my.data, n.trees = best.iter.cv):</span></div>
+<div class="sourceLine" id="61" href="#61" data-line-number="61"><span class="co">#&gt; NAs introduced by coercion</span></div>
+<div class="sourceLine" id="62" href="#62" data-line-number="62"></div>
+<div class="sourceLine" id="63" href="#63" data-line-number="63"><span class="co">#&gt; Warning in predict.gbm(model, newdata = my.data, n.trees = best.iter.cv):</span></div>
+<div class="sourceLine" id="64" href="#64" data-line-number="64"><span class="co">#&gt; NAs introduced by coercion</span></div>
+<div class="sourceLine" id="65" href="#65" data-line-number="65"></div>
+<div class="sourceLine" id="66" href="#66" data-line-number="66"><span class="co">#&gt; Warning in predict.gbm(model, newdata = my.data, n.trees = best.iter.cv):</span></div>
+<div class="sourceLine" id="67" href="#67" data-line-number="67"><span class="co">#&gt; NAs introduced by coercion</span></div>
+<div class="sourceLine" id="68" href="#68" data-line-number="68"></div>
+<div class="sourceLine" id="69" href="#69" data-line-number="69"><span class="co">#&gt; Warning in predict.gbm(model, newdata = my.data, n.trees = best.iter.cv):</span></div>
+<div class="sourceLine" id="70" href="#70" data-line-number="70"><span class="co">#&gt; NAs introduced by coercion</span></div>
+<div class="sourceLine" id="71" href="#71" data-line-number="71"></div>
+<div class="sourceLine" id="72" href="#72" data-line-number="72"><span class="co">#&gt; Warning in predict.gbm(model, newdata = my.data, n.trees = best.iter.cv):</span></div>
+<div class="sourceLine" id="73" href="#73" data-line-number="73"><span class="co">#&gt; NAs introduced by coercion</span></div>
+<div class="sourceLine" id="74" href="#74" data-line-number="74"><span class="co">#&gt; Using cv method...</span></div>
+<div class="sourceLine" id="75" href="#75" data-line-number="75"><span class="co">#&gt; Warning: Removed 1 rows containing missing values (geom_path).</span></div>
+<div class="sourceLine" id="76" href="#76" data-line-number="76"><span class="co">#&gt; Warning: Removed 1 rows containing missing values (geom_path).</span></div></code></pre>
+<p>Finally, we will apply the trained model to evaluate the remaining set of SVs including BND, DUP &amp; INV SV types.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><div class="sourceLine" id="1" href="#1" data-line-number="1">outmat &lt;-<span class="st"> </span><span class="kw">DVboostQscore</span>(DVb.res, ExampleData)</div>
+<div class="sourceLine" id="2" href="#2" data-line-number="2"><span class="co">#&gt; Using cv method...</span></div>
+<div class="sourceLine" id="3" href="#3" data-line-number="3"><span class="kw">head</span>(outmat)</div>
+<div class="sourceLine" id="4" href="#4" data-line-number="4"><span class="co">#&gt;                           ChrA   Start ChrB       End     SVLen Germline</span></div>
+<div class="sourceLine" id="5" href="#5" data-line-number="5"><span class="co">#&gt; chr1:789473_224012415@DEL chr1  789473 chr1 224012415 223222942      550</span></div>
+<div class="sourceLine" id="6" href="#6" data-line-number="6"><span class="co">#&gt; chr1:789501_790136@DEL    chr1  789501 chr1    790136       635       53</span></div>
+<div class="sourceLine" id="7" href="#7" data-line-number="7"><span class="co">#&gt; chr1:934050_934838@DEL    chr1  934050 chr1    934838       788       99</span></div>
+<div class="sourceLine" id="8" href="#8" data-line-number="8"><span class="co">#&gt; chr1:1350019_1351414@DEL  chr1 1350019 chr1   1351414      1395       11</span></div>
+<div class="sourceLine" id="9" href="#9" data-line-number="9"><span class="co">#&gt; chr1:1651466_1717728@DEL  chr1 1651466 chr1   1717728     66262      192</span></div>
+<div class="sourceLine" id="10" href="#10" data-line-number="10"><span class="co">#&gt; chr1:1667010_1667134@DEL  chr1 1667010 chr1   1667134       124       66</span></div>
+<div class="sourceLine" id="11" href="#11" data-line-number="11"><span class="co">#&gt;                           SVType PE SR CNVMAP CNVR avgL avgH  avgZ avgQ</span></div>
+<div class="sourceLine" id="12" href="#12" data-line-number="12"><span class="co">#&gt; chr1:789473_224012415@DEL    DEL  5  0      0    0    3 62.5  34.5    0</span></div>
+<div class="sourceLine" id="13" href="#13" data-line-number="13"><span class="co">#&gt; chr1:789501_790136@DEL       DEL  0  6      0    0    3 37.0  60.0    0</span></div>
+<div class="sourceLine" id="14" href="#14" data-line-number="14"><span class="co">#&gt; chr1:934050_934838@DEL       DEL  5  0      0    0  100  0.0   0.0    0</span></div>
+<div class="sourceLine" id="15" href="#15" data-line-number="15"><span class="co">#&gt; chr1:1350019_1351414@DEL     DEL  4  0      0    0   98  0.0   2.0    0</span></div>
+<div class="sourceLine" id="16" href="#16" data-line-number="16"><span class="co">#&gt; chr1:1651466_1717728@DEL     DEL  4  0      0    1    0  0.0 100.0    0</span></div>
+<div class="sourceLine" id="17" href="#17" data-line-number="17"><span class="co">#&gt; chr1:1667010_1667134@DEL     DEL  0  4      0    0   89  0.0  11.0    0</span></div>
+<div class="sourceLine" id="18" href="#18" data-line-number="18"><span class="co">#&gt;                               Qscore</span></div>
+<div class="sourceLine" id="19" href="#19" data-line-number="19"><span class="co">#&gt; chr1:789473_224012415@DEL 0.01266892</span></div>
+<div class="sourceLine" id="20" href="#20" data-line-number="20"><span class="co">#&gt; chr1:789501_790136@DEL    0.01942568</span></div>
+<div class="sourceLine" id="21" href="#21" data-line-number="21"><span class="co">#&gt; chr1:934050_934838@DEL    0.02702703</span></div>
+<div class="sourceLine" id="22" href="#22" data-line-number="22"><span class="co">#&gt; chr1:1350019_1351414@DEL  0.03293919</span></div>
+<div class="sourceLine" id="23" href="#23" data-line-number="23"><span class="co">#&gt; chr1:1651466_1717728@DEL  0.12500000</span></div>
+<div class="sourceLine" id="24" href="#24" data-line-number="24"><span class="co">#&gt; chr1:1667010_1667134@DEL  0.02871622</span></div></code></pre>
+</section>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
