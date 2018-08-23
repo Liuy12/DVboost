@@ -55,7 +55,7 @@ fitDVboostmodel <- function( input.mtx, is.known.variant,
              shrinkage=.01,
              n.minobsinnode=20)
 
-  bestTreeForPrediction= gbm.perf(DV.res)
+  bestTreeForPrediction= gbm.perf(DV.res, plot.it = F)
   DV.res$fitted.values <-  plogis(2*DV.res$fit)
   # convert it to the 0-1 scale since the adaboost method gives the predictions on logit scale.
   # http://stats.stackexchange.com/questions/37497/how-to-use-r-gbm-with-distribution-adaboost

@@ -25,7 +25,7 @@
 
 DVboostQscore <- function(DVb.res, tmp.mtx){
   DV.fit.res1 <- DVb.res$DVboost.res
-  bestTreeForPrediction <- gbm.perf(DV.fit.res1)
+  bestTreeForPrediction <- gbm.perf(DV.fit.res1,plot.it = F)
   tmp.mtx.else <- tmp.mtx[tmp.mtx$SVType != 'DEL',]
   pred <- predict(DV.fit.res1 ,tmp.mtx.else, n.trees=bestTreeForPrediction, type = 'response')
   DVboost.ECDF <- ecdf(DV.fit.res1$fitted.values[which(DV.fit.res1$is.known.variant==1)])
