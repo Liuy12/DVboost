@@ -5,7 +5,7 @@
 \title{Fitting a DVboost model based on annotated SVs}
 \usage{
 fitDVboostmodel(input.mtx, is.known.variant, fitting.verbose = FALSE,
-  min.N.known.var = 50, sampleid)
+  min.N.known.var = 50)
 }
 \arguments{
 \item{input.mtx}{annotated SVs loaded and formatted via \code{\link{loadVariants}}}
@@ -15,8 +15,6 @@ fitDVboostmodel(input.mtx, is.known.variant, fitting.verbose = FALSE,
 \item{fitting.verbose}{logical value, if TRUE, it will print out progress and performance indicators. Default to FALSE}
 
 \item{min.N.known.var}{minimum number of known SVs needed to build training model. Default to 50}
-
-\item{sampleid}{same sample name used for annotation procedure}
 }
 \value{
 DV.res which is essentially a \code{\link{gbm.object}} with several additional fields:
@@ -32,13 +30,12 @@ Internal function called by \code{\link{runDVboostwrapper}}
 }
 \examples{
 data(ExampleData, package='DVboost')
-sample <- gsub('_PE', '', grep('_PE$', colnames(ExampleData), value=TRUE))
+sample <- 'NA12878'
 outdir <- getwd()
 tmp.mtx.DEL <- ExampleData[ExampleData$SVType == 'DEL',]
 truth.vec <- tmp.mtx.DEL$CNVMAP == 1 | tmp.mtx.DEL$CNVR ==1
 is.semi.truth.vec <- as.numeric(truth.vec)
-DV.fit.res1 <- fitDVboostmodel(input.mtx=tmp.mtx.DEL, is.known.variant = is.semi.truth.vec,
-sampleid=sample)
+DV.fit.res1 <- fitDVboostmodel(input.mtx=tmp.mtx.DEL, is.known.variant = is.semi.truth.vec)
 
 }
 \seealso{

@@ -5,6 +5,7 @@
 #' @param var.ID.vec a vector of characters indicating IDs for each SV in \code{var.atr.mtx}
 #' @param is.known.var.vec a vector contains 0 and 1s in the same order as \code{var.atr.mtx} indicating whether a SV is known(1) or novel(0)
 #' @param output.DIR.name path to output folder where all figure files and data files will be saved
+#' @param input.sample.ID character value used as prefix for output files
 #' @param fitting.verbose logical value, if TRUE, it will print out progress and performance indicators. Default to FALSE
 #' @param min.N.known.var minimum number of known SVs needed to build training model. Default to 50
 #' @param bySVlength logical value, if true, performance will also be evaluated seperately for different categories of SV length. See details section for more
@@ -22,14 +23,14 @@
 #'
 #' @examples
 #' data(ExampleData, package='DVboost')
-#' sample <- gsub('_PE', '', grep('_PE$', colnames(ExampleData), value=TRUE))
+#' sample <- 'NA12878'
 #' outdir <- getwd()
 #' tmp.mtx.DEL <- ExampleData[ExampleData$SVType == 'DEL',]
 #' truth.vec <- tmp.mtx.DEL$CNVMAP == 1 | tmp.mtx.DEL$CNVR ==1
 #' is.semi.truth.vec <- as.numeric(truth.vec)
 #' DVb.res <- runDVboostwrapper( var.atr.mtx = tmp.mtx.DEL, var.ID.vec = rownames(tmp.mtx.DEL),
 #'                              is.known.var.vec = is.semi.truth.vec,
-#'                              output.DIR.name = outdir, bySVlength=FALSE)
+#'                              output.DIR.name = outdir,input.sample.ID=sample, bySVlength=FALSE)
 #'
 #' @seealso
 #' \code{\link{metricView}}, \code{\link{fitDVboostmodel}}, \code{\link{DVboostQscore}}
@@ -37,7 +38,7 @@
 #' @export
 
 runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
-                                output.DIR.name,
+                                output.DIR.name,input.sample.ID,
                                 fitting.verbose = FALSE, min.N.known.var = 50, bySVlength=FALSE)
 {
   if (!file.exists(output.DIR.name) ){
@@ -48,8 +49,6 @@ runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
   DVboost.score.vec <- mat.or.vec(length(var.ID.vec),1) + NA
   names(DVboost.score.vec) <- var.ID.vec
 
-  input.sample.ID <- grep('_PE$', colnames(var.atr.mtx), value = TRUE)
-  input.sample.ID <- gsub('_PE', '', input.sample.ID)
   sel.var.idx <- 1:nrow(var.atr.mtx)
   sel.var.atr.mtx <- var.atr.mtx[sel.var.idx,]
   #rownames(sel.var.atr.mtx) <- var.ID.vec[sel.var.idx]
@@ -58,11 +57,11 @@ runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
   cat("\n First 10 rows of input variant by attribute matrix... \n")
   print(head(sel.var.atr.mtx,10))
 
-  cat("\n Last 10 rows of input variant by attribute matrix...")
+  cat("\n Last 10 rows of input variant by attribute matrix... \n")
   print(tail(sel.var.atr.mtx,10))
   DV.fit.res1 <- fitDVboostmodel(input.mtx=sel.var.atr.mtx, is.known.variant = train.label.vec,
                                    fitting.verbose = fitting.verbose,
-                                   min.N.known.var = min.N.known.var,sampleid=input.sample.ID)
+                                   min.N.known.var = min.N.known.var)
 
   DVboost.score.vec[DV.fit.res1$ID] <- DV.fit.res1$DVboost.Q.score
   if(bySVlength){

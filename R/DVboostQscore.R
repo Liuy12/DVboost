@@ -6,14 +6,14 @@
 #' @return A data.frame with same format as \code{tmp.mtx} with one additional field \code{Qscore}
 #' @examples
 #' data(ExampleData, package='DVboost')
-#' sample <- gsub('_PE', '', grep('_PE$', colnames(ExampleData), value=TRUE))
+#' sample <- 'NA12878'
 #' outdir <- getwd()
 #' tmp.mtx.DEL <- ExampleData[ExampleData$SVType == 'DEL',]
 #' truth.vec <- tmp.mtx.DEL$CNVMAP == 1 | tmp.mtx.DEL$CNVR ==1
 #' is.semi.truth.vec <- as.numeric(truth.vec)
 #' DVb.res <- runDVboostwrapper( var.atr.mtx = tmp.mtx.DEL, var.ID.vec = rownames(tmp.mtx.DEL),
 #'                              is.known.var.vec = is.semi.truth.vec,
-#'                              output.DIR.name = outdir, bySVlength=FALSE)
+#'                              output.DIR.name = outdir, input.sample.ID=sample, bySVlength=FALSE)
 #' outmat <- DVboostQscore(DVb.res, ExampleData)
 #'
 #' @seealso
@@ -32,4 +32,5 @@ DVboostQscore <- function(DVb.res, tmp.mtx){
   DVboost.Q.score <- DVboost.ECDF(c(DV.fit.res1$fitted.values,pred))
   outmat <- rbind(tmp.mtx[tmp.mtx$SVType == 'DEL',], tmp.mtx.else)
   outmat$Qscore <- DVboost.Q.score
+  return(outmat)
 }

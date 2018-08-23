@@ -6,8 +6,6 @@
 #' @param is.known.variant numeric vector of 0/1 in the same order as \code{input.mtx} indicating whether a SV is known(1) or novel(0)
 #' @param fitting.verbose logical value, if TRUE, it will print out progress and performance indicators. Default to FALSE
 #' @param min.N.known.var minimum number of known SVs needed to build training model. Default to 50
-#' @param sampleid same sample name used for annotation procedure
-#'
 #' @return DV.res which is essentially a \code{\link{gbm.object}} with several additional fields:
 #' \itemize{
 #' \item fitted.values: converted to probability based on \code{fit} field
@@ -18,13 +16,12 @@
 #'
 #' @examples
 #' data(ExampleData, package='DVboost')
-#' sample <- gsub('_PE', '', grep('_PE$', colnames(ExampleData), value=TRUE))
+#' sample <- 'NA12878'
 #' outdir <- getwd()
 #' tmp.mtx.DEL <- ExampleData[ExampleData$SVType == 'DEL',]
 #' truth.vec <- tmp.mtx.DEL$CNVMAP == 1 | tmp.mtx.DEL$CNVR ==1
 #' is.semi.truth.vec <- as.numeric(truth.vec)
-#' DV.fit.res1 <- fitDVboostmodel(input.mtx=tmp.mtx.DEL, is.known.variant = is.semi.truth.vec,
-#' sampleid=sample)
+#' DV.fit.res1 <- fitDVboostmodel(input.mtx=tmp.mtx.DEL, is.known.variant = is.semi.truth.vec)
 #'
 #' @seealso
 #' \code{\link{runDVboostwrapper}}
@@ -33,7 +30,7 @@
 #' @import gbm
 
 fitDVboostmodel <- function( input.mtx, is.known.variant,
-                             fitting.verbose = FALSE, min.N.known.var = 50,sampleid)
+                             fitting.verbose = FALSE, min.N.known.var = 50)
 {
   cat("\n whether variants are known (1 = known, 0 = others) \n")
   print(table(is.known.variant))

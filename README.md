@@ -62,7 +62,7 @@ Then we will train the model using DEL subset of annotated SVs.
 outdir <- getwd()
 DVb.res <- runDVboostwrapper( var.atr.mtx = DEL_svtype, var.ID.vec = rownames(DEL_svtype),
                                 is.known.var.vec = trueSVs,
-                                output.DIR.name = outdir, bySVlength=F)
+                                output.DIR.name = outdir, input.sample.ID='NA12878', bySVlength=F)
 ```
 
 Finally, we will apply the trained model to evaluate the remaining set of SVs including BND, DUP & INV SV types.

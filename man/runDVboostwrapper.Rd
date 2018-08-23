@@ -5,8 +5,8 @@
 \title{Core function for DVboost model training}
 \usage{
 runDVboostwrapper(var.atr.mtx, var.ID.vec, is.known.var.vec,
-  output.DIR.name, fitting.verbose = FALSE, min.N.known.var = 50,
-  bySVlength = FALSE)
+  output.DIR.name, input.sample.ID, fitting.verbose = FALSE,
+  min.N.known.var = 50, bySVlength = FALSE)
 }
 \arguments{
 \item{var.atr.mtx}{a data.frame containing subset of total SVs (Only 'DEL' type)}
@@ -16,6 +16,8 @@ runDVboostwrapper(var.atr.mtx, var.ID.vec, is.known.var.vec,
 \item{is.known.var.vec}{a vector contains 0 and 1s in the same order as \code{var.atr.mtx} indicating whether a SV is known(1) or novel(0)}
 
 \item{output.DIR.name}{path to output folder where all figure files and data files will be saved}
+
+\item{input.sample.ID}{character value used as prefix for output files}
 
 \item{fitting.verbose}{logical value, if TRUE, it will print out progress and performance indicators. Default to FALSE}
 
@@ -43,14 +45,14 @@ figures and text files.
 }
 \examples{
 data(ExampleData, package='DVboost')
-sample <- gsub('_PE', '', grep('_PE$', colnames(ExampleData), value=TRUE))
+sample <- 'NA12878'
 outdir <- getwd()
 tmp.mtx.DEL <- ExampleData[ExampleData$SVType == 'DEL',]
 truth.vec <- tmp.mtx.DEL$CNVMAP == 1 | tmp.mtx.DEL$CNVR ==1
 is.semi.truth.vec <- as.numeric(truth.vec)
 DVb.res <- runDVboostwrapper( var.atr.mtx = tmp.mtx.DEL, var.ID.vec = rownames(tmp.mtx.DEL),
                              is.known.var.vec = is.semi.truth.vec,
-                             output.DIR.name = outdir, bySVlength=FALSE)
+                             output.DIR.name = outdir,input.sample.ID=sample, bySVlength=FALSE)
 
 }
 \seealso{

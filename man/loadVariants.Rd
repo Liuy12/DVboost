@@ -2,6 +2,7 @@
 % Please edit documentation in R/loadVariants.R
 \name{loadVariants}
 \alias{loadVariants}
+\alias{ExampleData}
 \title{Load annotated SVs file}
 \usage{
 loadVariants(input)
