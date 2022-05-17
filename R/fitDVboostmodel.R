@@ -30,7 +30,7 @@
 #' @import gbm
 
 fitDVboostmodel <- function( input.mtx, is.known.variant,
-                             fitting.verbose = FALSE, min.N.known.var = 50)
+                             fitting.verbose = FALSE, min.N.known.var = 50,caller)
 {
   cat("\n whether variants are known (1 = known, 0 = others) \n")
   print(table(is.known.variant))
@@ -38,6 +38,7 @@ fitDVboostmodel <- function( input.mtx, is.known.variant,
     stop( paste("######## (DVboost error)\n \t",
                 "Too few known variants; less than specified 'min.N.known.var' =", min.N.known.var) )
   }
+  if(!caller %in% c('lumpy','delly','cnvnator','wandy','manta','gridss')) stop('caller has to be one of lumpy,delly,cnvnator,wandy,manta')
   cat("\n fitting DVboost model ... \n")
   sel.var.idx <- 1:nrow(input.mtx)
   sel.var.atr.mtx <- input.mtx[sel.var.idx,]
@@ -45,12 +46,27 @@ fitDVboostmodel <- function( input.mtx, is.known.variant,
   train.df<-as.data.frame(sel.var.atr.mtx)
   y<-train_is.known.variant
 
-  DV.res=gbm(y~ PE + SR + avgL + avgH + avgZ + avgQ  + Germline,
+  if(caller=='wandy')
+    DV.res=gbm(y~ L2R + dt_score + avgsm_H + avgsm_L + avgsm_Z + avgsm_Q,
              distribution="adaboost",
              data=train.df,
              n.trees=2000,cv.folds=5,n.cores=1,
              shrinkage=.01,
              n.minobsinnode=20)
+  else if(caller=='cnvnator'){
+    DV.res=gbm(y~  CN + PE + dt_score + avgsm_H + avgsm_L + avgsm_Z + avgsm_Q,
+               distribution="adaboost",
+               data=train.df,
+               n.trees=2000,cv.folds=5,n.cores=1,
+               shrinkage=.01,
+               n.minobsinnode=20)
+  } else
+    DV.res=gbm(y~ PE + RV + dt_score + avgsm_H + avgsm_L + avgsm_Z + avgsm_Q,
+               distribution="adaboost",
+               data=train.df,
+               n.trees=2000,cv.folds=5,n.cores=1,
+               shrinkage=.01,
+               n.minobsinnode=20)
 
   bestTreeForPrediction= gbm.perf(DV.res, plot.it = F)
   DV.res$fitted.values <-  plogis(2*DV.res$fit)

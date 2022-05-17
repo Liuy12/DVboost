@@ -55,7 +55,7 @@ metricView <- function(DV.fit.res,input.sample.ID, plot.filename, DV.sampleQC.fi
   gp4 <- ggplot(data = df1) + geom_line(aes(x=x, y=y)) +
     theme_classic() +
     theme(plot.title = element_text(hjust = 0.5)) +
-    labs(x='Recall', y='Precision', title = paste("F score of Precision-Recall =", round(fscore[idx1],3))) +
+    labs(x='Recall', y='Precision', title = paste("Max F score =", round(fscore[idx1],3),' at Q value ',round(perf3@alpha.values[[1]][idx1],2))) +
     geom_point(aes(x=recall.vec[idx1], y=precision.vec[idx1]), shape=4, size=6,color='black')
 
   perf.FP <- performance(pred2, "fpr", "tpr")
@@ -73,7 +73,7 @@ metricView <- function(DV.fit.res,input.sample.ID, plot.filename, DV.sampleQC.fi
   gp5 <- ggplot(data = df1) + geom_line(aes(x=x, y=y)) +
     theme_classic() +
     theme(plot.title = element_text(hjust = 0.5)) +
-    labs(x='False positive rate', y='True positive rate', title = paste("AUC of False-Positive v. True-Positive =",round(est.AUC.FPTP.val,3)))
+    labs(x='False positive rate', y='True positive rate', title = paste("AUC =",round(est.AUC.FPTP.val,3)))
 
   perf.FP1 <- performance(pred2, "prec", "rec")
   FDR.vec <- 1-unlist(perf.FP1@y.values)

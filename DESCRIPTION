@@ -6,7 +6,7 @@ Author: Yuanhang Liu <liu.yuanhang@mayo.edu>
 Maintainer: Yuanhang Liu <liu.yuanhang@mayo.edu>
 Description: We developed a bioinformatics tool kit consisting of two major modules: first annotation component to annotate various genomics features given SV calls and overlaps with polymorphism CNVs; the second module used boosted regression to construct a predictive model of SV filtering/prioritization based on these features. 
 License: GPL (>=3)
-Imports: gbm, ROCR, gridExtra, ggplot2
+Imports: gbm, ROCR, gridExtra, ggplot2, GenomicRanges, rtracklayer, Biostrings, data.table, doFuture
 Depends: R (>= 3.3)
 Suggests: knitr, testthat,
     rmarkdown

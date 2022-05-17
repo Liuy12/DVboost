@@ -39,7 +39,7 @@
 
 runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
                                 output.DIR.name,input.sample.ID,
-                                fitting.verbose = FALSE, min.N.known.var = 50, bySVlength=FALSE)
+                                fitting.verbose = FALSE, min.N.known.var = 50, bySVlength=FALSE,caller)
 {
   if (!file.exists(output.DIR.name) ){
     cat('The specified output directory \"',output.DIR.name,'\" does not exist, creating directory...\n',sep='')
@@ -61,7 +61,7 @@ runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
   print(tail(sel.var.atr.mtx,10))
   DV.fit.res1 <- fitDVboostmodel(input.mtx=sel.var.atr.mtx, is.known.variant = train.label.vec,
                                    fitting.verbose = fitting.verbose,
-                                   min.N.known.var = min.N.known.var)
+                                   min.N.known.var = min.N.known.var,caller=caller)
 
   DVboost.score.vec[DV.fit.res1$ID] <- DV.fit.res1$DVboost.Q.score
   if(bySVlength){
@@ -71,7 +71,7 @@ runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
       DV.sampleQC.filename <- paste(output.DIR.name,"/",input.sample.ID,"_DVboost_summaryQC_", lenClass[i], '.txt',sep = "")
       tmp <- strsplit(lenClass[i], '_')
       tmp <- as.numeric(tmp[[1]])
-      if(length(tmp)==1) idx <- which(sel.var.atr.mtx$SVLen >= tmp[1]) else idx <-  which(sel.var.atr.mtx$SVLen >= tmp[1] & sel.var.atr.mtx$SVLen < tmp[2])
+      if(length(tmp)==1) idx <- which(sel.var.atr.mtx$LENGTH >= tmp[1]) else idx <-  which(sel.var.atr.mtx$LENGTH >= tmp[1] & sel.var.atr.mtx$LENGTH < tmp[2])
       if(length(unique(DV.fit.res1$is.known.variant[idx])) == 2)
         metricView(DV.fit.res = DV.fit.res1, input.sample.ID=input.sample.ID, plot.filename = plot.filename, DV.sampleQC.filename = DV.sampleQC.filename, subset = idx)
     }
