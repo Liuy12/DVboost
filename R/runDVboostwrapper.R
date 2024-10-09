@@ -51,7 +51,7 @@ runDVboostwrapper <- function(var.atr.mtx, var.ID.vec, is.known.var.vec,
 
   sel.var.idx <- 1:nrow(var.atr.mtx)
   sel.var.atr.mtx <- var.atr.mtx[sel.var.idx,]
-  #rownames(sel.var.atr.mtx) <- var.ID.vec[sel.var.idx]
+  rownames(sel.var.atr.mtx) <- var.ID.vec[sel.var.idx]
   train.label.vec <- is.known.var.vec[sel.var.idx]
 
   cat("\n First 10 rows of input variant by attribute matrix... \n")

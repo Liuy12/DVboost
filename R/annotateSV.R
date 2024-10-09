@@ -24,13 +24,14 @@
 #' @export
 
 ######### with one line per event, CHR1 & CHR2 to incorporate BND or CTX
-annotateSV <- function(input,genome='hg38',rocutoff=0.5,buffersize=1000,seltype='DEL',oneKSV,cnvMap,dangerTrack,strictMask){
+annotateSV <- function(input,genome='hg38',rocutoff=0.5,buffersize=1000,seltype='all',oneKSV,cnvMap,dangerTrack,strictMask){
   t1 <- Sys.time()
   message('loading input data......')
   input <- fread(input,header = T,sep='\t',stringsAsFactors = F,check.names = F)
   setnames(input,c(1:11),c("ID","CHROM1","CHROM2","POS","END","TYPE",'GENOME','LENGTH','CALLER',"INNER_RANGE","OUTER_RANGE"))
-  input <- input[TYPE %in% seltype,]
-  genome <- SeqinfoForUCSCGenome(genome = genome)
+  if(seltype != 'all') input <- input[TYPE %in% seltype,]
+  genome <- readRDS(paste0(system.file("extdata", package = "DVboost"), "/reference/", genome, ".rds"))
+  #genome <- SeqinfoForUCSCGenome(genome = genome)
   message('identifying overlaps with 1000 genome and CNVMap polymorphic SVs......')
   idx <- which(input[,apply(.SD,1,function(i) !any(is.na(i))),.SDcols=c("POS","END")])
   if(length(idx) != nrow(input)) stop('NA exists for POS or END columns')

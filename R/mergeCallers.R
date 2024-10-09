@@ -1,44 +1,44 @@
 #' Merging SV events from different callers 
 #'
-#' @param input input file after converter scripts for each CNV/SV caller
-#' @param genome genome version, e.g. hg19 or hg38
-#' @param rocutoff reciprocal overlapping threshold to identify overlaps with polymorphic SV database
-#' @param buffersize default buffer size to use if not supplied by caller (e.g. CIPOS is not available)
-#' @param seltype select a subset of SVs matching seltype for annotation 
-#' @param oneKSV path to .bed file containing polymorphic events from 1000 genome database
-#' @param cnvMap path to .bed file containing polymorphic events from CNV map
-#' @param dangerTrack path to .bed file containing dangertrack annotations
-#' @param strictMask path to .fa file containing strictmask information
+#' @param df a data.frame containing technical annotations and q score from multiple callers (lumpy, manta, e.g.)
+#' @param rocutoff threshold for merging events, e.g. events with reciprocal overlap bigger than the set value will be merged in the same cluster
+#' @param summethod method to summarize numeric columns for overlapping events, can be either 'mean' or 'median',default to 'median'
+
 #' 
-#' @return formatted data.frame to be used for model training including following fields besides the supplied fields:
-#' \itemize{
-#' \item oneKSV: 0/1 indicating whether the same SV is a known SV based on 1k genome database (https://www.nature.com/articles/nature15393);
-#' \item cnvMap: 0/1 indicating whether the same SV is a known SV based on polymophic CNV database (https://www.nature.com/articles/nrg3871);
-#' \item dt_score: danger track score from here (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5405793/);
-#' \item avgsm_H: average of strict mask H (depth of coverage is much higher than average).
-#' \item avgsm_L: average of strict mask L (depth of coverage is much lower than average).
-#' \item avgsm_Z: average of strict mask Z (too many reads with zero mapping quality overlap this position).
-#' \item avgsm_Q: average of strict mask Q (average mapping quality is too low).
-#' }
+#' @return a data.frame with overlapping events merged, inter-chromosomal events will not be merged
 #' @examples
 #' @export
 
 
-mergeCallers <- function(df,rocutoff){
-  for(i in unique(df$TYPE[which(df$CHROM1 == df$CHROM2)])){
+mergeCallers <- function(df,rocutoff,summethod='median'){
+  df$TYPE[is.na(df$TYPE)] <- 'CNV'
+  df <- as.data.frame(df)
+  summethod <- get(summethod)
+  output <- foreach(i = unique(df$TYPE[which(df$CHROM1 == df$CHROM2)]),.inorder = TRUE,.combine = dplyr::bind_rows) %dopar% {
+    message(paste0('merging ',i, ' events'))
     idx1 <- which(df$CHROM1 == df$CHROM2 & df$TYPE == i)
-    gr0 <- GRanges(seqnames = df$CHROM1,
-                   ranges = IRanges(start = apply(df[,c("POS","END")],1,min),
-                                    end = apply(df[,c("POS","END")],1,max)),
+    df1 <- df[idx1,]
+    gr0 <- GRanges(seqnames = df1$CHROM1,
+                   ranges = IRanges(start = apply(df1[,c("POS","END")],1,min),
+                                    end = apply(df1[,c("POS","END")],1,max)),
                    strand = '*',
-                   ID = df$ID)
+                   ID = df1$ID)
     hits <- findOverlaps(gr0)
     x <- gr0[queryHits(hits)]
     y <- gr0[subjectHits(hits)]
     relative_overlap <- width(pintersect(x, y)) / pmax(width(x), width(y))
     hits <- hits[relative_overlap >= rocutoff]
     gr1 <- mergeConnectedRanges(gr0, hits)
+    output1 <- data.frame(ID=paste0(i,'_clusterevent',1:length(gr1)),
+                          CHROM1=seqnames(gr1),CHROM2=seqnames(gr1),POS=start(gr1),END=end(gr1),TYPE=i,GENOME=unique(df1$GENOME),
+                          CALLER=sapply(gr1$revmap,function(j) paste0(unique(df1$CALLER[j]),collapse = ':'))
+    )
+    output2 <- t(sapply(gr1$revmap,function(j) apply(df1[j,c(8,10:ncol(df1))],2,function(k) summethod(k,na.rm = T))))
+    output3 <- cbind(output1,output2)
+    output3[,match(colnames(df1),colnames(output3))]
   }
+  output <- rbind(output,df[df$CHROM1 != df$CHROM2,])
+  return(output)
 }
 
 

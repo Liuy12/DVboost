@@ -61,7 +61,7 @@ fitDVboostmodel <- function( input.mtx, is.known.variant,
                shrinkage=.01,
                n.minobsinnode=20)
   } else
-    DV.res=gbm(y~ PE + RV + dt_score + avgsm_H + avgsm_L + avgsm_Z + avgsm_Q,
+    DV.res=gbm(y~ PE + SR + dt_score + avgsm_H + avgsm_L + avgsm_Z + avgsm_Q,
                distribution="adaboost",
                data=train.df,
                n.trees=2000,cv.folds=5,n.cores=1,
